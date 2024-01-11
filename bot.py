@@ -31,12 +31,6 @@ async def Lazy_start():
     print('\n')
     print('Initializing Lazy Bot')
 
-    try:
-        loop = asyncio.get_running_loop()
-    except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-
     bot_info = await LazyPrincessBot.get_me()
     LazyPrincessBot.username = bot_info.username
     await initialize_clients()
@@ -85,13 +79,9 @@ async def Lazy_start():
     await web.TCPSite(app, bind_address, PORT).start()
     await idle()
 
-def main():
-    loop = asyncio.get_event_loop()
+if __name__ == '__main__':
     try:
-        loop.run_until_complete(Lazy_start())
+        asyncio.run(Lazy_start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
-
-if __name__ == '__main__':
-    main()
     
