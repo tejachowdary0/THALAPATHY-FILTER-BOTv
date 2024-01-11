@@ -28,8 +28,8 @@ api_hash = "ed52a1d0803b2ed84c5cca7f20535aac"  # Replace with your API Hash
 
 LazyPrincessBot = Client(
     "my_bot",
-    api_id=27604683,
-    api_hash=ed52a1d0803b2ed84c5cca7f20535aac,
+    api_id=api_id,
+    api_hash=api_hash,
     bot_token="5855385200:AAEZCFFhA502Ue2i_plNdaP8QtVEFY5GxCM"  # Replace with your bot token
 )
 
