@@ -18,7 +18,6 @@ import pytz
 from aiohttp import web
 from plugins import web_server
 import asyncio
-from pyrogram import idle
 from lazybot import LazyPrincessBot
 from util.keepalive import ping_server
 from lazybot.clients import initialize_clients
@@ -80,8 +79,11 @@ async def Lazy_start():
     await idle()
 
 if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
     try:
-        asyncio.run(Lazy_start())
+        loop.run_until_complete(Lazy_start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
-    
+    finally:
+        loop.run_until_complete(loop.shutdown_asyncgens())
+        loop.close()
