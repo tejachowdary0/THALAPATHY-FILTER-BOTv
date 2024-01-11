@@ -18,73 +18,85 @@ import pytz
 from aiohttp import web
 from plugins import web_server
 import asyncio
-from lazybot import LazyPrincessBot
-from util.keepalive import ping_server
-from lazybot.clients import initialize_clients
+from pyrogram import idle
 
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
-LazyPrincessBot.start()
+
+api_id = 27604683  # Replace with your API ID
+api_hash = "ed52a1d0803b2ed84c5cca7f20535aac"  # Replace with your API Hash
+
+LazyPrincessBot = Client(
+    "my_bot",
+    api_id=27604683,
+    api_hash=ed52a1d0803b2ed84c5cca7f20535aac,
+    bot_token="5855385200:AAEZCFFhA502Ue2i_plNdaP8QtVEFY5GxCM"  # Replace with your bot token
+)
 
 async def Lazy_start():
-    print('\n')
-    print('Initializing Lazy Bot')
+    try:
+        print('\n')
+        print('Initializing Lazy Bot')
 
-    bot_info = await LazyPrincessBot.get_me()
-    LazyPrincessBot.username = bot_info.username
-    await initialize_clients()
+        await LazyPrincessBot.start()
 
-    for name in files:
-        with open(name) as a:
-            patt = Path(a.name)
-            plugin_name = patt.stem.replace(".py", "")
-            plugins_dir = Path(f"plugins/{plugin_name}.py")
-            import_path = "plugins.{}".format(plugin_name)
-            spec = importlib.util.spec_from_file_location(import_path, plugins_dir)
-            load = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(load)
-            sys.modules["plugins." + plugin_name] = load
-            print("Lazy Imported => " + plugin_name)
+        bot_info = await LazyPrincessBot.get_me()
+        LazyPrincessBot.username = bot_info.username
 
-    if ON_HEROKU:
-        asyncio.create_task(ping_server())
+        for name in files:
+            with open(name) as a:
+                patt = Path(a.name)
+                plugin_name = patt.stem.replace(".py", "")
+                plugins_dir = Path(f"plugins/{plugin_name}.py")
+                import_path = "plugins.{}".format(plugin_name)
+                spec = importlib.util.spec_from_file_location(import_path, plugins_dir)
+                load = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(load)
+                sys.modules["plugins." + plugin_name] = load
+                print("Lazy Imported => " + plugin_name)
 
-    b_users, b_chats = await db.get_banned()
-    temp.BANNED_USERS = b_users
-    temp.BANNED_CHATS = b_chats
-    await Media.ensure_indexes()
+        if ON_HEROKU:
+            asyncio.create_task(ping_server())
 
-    me = await LazyPrincessBot.get_me()
-    temp.ME = me.id
-    temp.U_NAME = me.username
-    temp.B_NAME = me.first_name
-    LazyPrincessBot.username = '@' + me.username
+        b_users, b_chats = await db.get_banned()
+        temp.BANNED_USERS = b_users
+        temp.BANNED_CHATS = b_chats
+        await Media.ensure_indexes()
 
-    logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
-    logging.info(LOG_STR)
-    logging.info(script.LOGO)
+        me = await LazyPrincessBot.get_me()
+        temp.ME = me.id
+        temp.U_NAME = me.username
+        temp.B_NAME = me.first_name
+        LazyPrincessBot.username = '@' + me.username
 
-    tz = pytz.timezone('Asia/Kolkata')
-    today = date.today()
-    now = datetime.now(tz)
-    time = now.strftime("%H:%M:%S %p")
+        logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
+        logging.info(LOG_STR)
+        logging.info(script.LOGO)
 
-    await LazyPrincessBot.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(today, time))
+        tz = pytz.timezone('Asia/Kolkata')
+        today = date.today()
+        now = datetime.now(tz)
+        time = now.strftime("%H:%M:%S %p")
 
-    app = web.AppRunner(await web_server())
-    await app.setup()
+        await LazyPrincessBot.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(today, time))
 
-    bind_address = "0.0.0.0"
-    await web.TCPSite(app, bind_address, PORT).start()
-    await idle()
+        app = web.AppRunner(await web_server())
+        await app.setup()
+
+        bind_address = "0.0.0.0"
+        await web.TCPSite(app, bind_address, PORT).start()
+        await idle()
+
+    except pyrogram.errors.FloodWait as e:
+        # Handle FloodWait error
+        wait_seconds = e.x
+        logging.warning(f"FloodWait: Waiting for {wait_seconds} seconds.")
+        await asyncio.sleep(wait_seconds)
+        await Lazy_start()
 
 if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(Lazy_start())
+        asyncio.run(Lazy_start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
-    finally:
-        loop.run_until_complete(loop.shutdown_asyncgens())
-        loop.close()
-    
+                
