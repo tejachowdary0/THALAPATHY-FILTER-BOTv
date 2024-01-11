@@ -32,11 +32,11 @@ async def Lazy_start():
     print('\n')
     print('Initializing Lazy Bot')
 
-    loop = asyncio.get_event_loop()
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        pass
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
 
     bot_info = await LazyPrincessBot.get_me()
     LazyPrincessBot.username = bot_info.username
@@ -95,4 +95,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-            
