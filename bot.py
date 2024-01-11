@@ -44,7 +44,6 @@ from lazybot.clients import initialize_clients
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
 LazyPrincessBot.start()
-loop = asyncio.get_event_loop()
 
 async def Lazy_start():
     print('\n')
@@ -89,10 +88,12 @@ async def Lazy_start():
     await idle()
 
 
-if __name__ == '__main__':
-    
+ def main():
+    loop = asyncio.get_event_loop()
     try:
         loop.run_until_complete(Lazy_start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
 
+ if __name__ == '__main__':
+    main()
