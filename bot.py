@@ -3,15 +3,12 @@ import glob
 import importlib
 from pathlib import Path
 import logging
-from pyrogram import Client, idle
-from pyrogram import __version__ as pyro_version
+from pyrogram import idle, Client, types
 from pyrogram.raw.all import layer
 from database.ia_filterdb import Media
 from database.users_chats_db import db
 from info import *
 from utils import temp
-from typing import Union, Optional, AsyncGenerator
-from pyrogram import types
 from Script import script 
 from datetime import date, datetime 
 import pytz
@@ -68,7 +65,7 @@ async def Lazy_start():
         temp.B_NAME = me.first_name
         LazyPrincessBot.username = '@' + me.username
 
-        logging.info(f"{me.first_name} with for Pyrogram v{pyro_version} (Layer {layer}) started on {me.username}.")
+        logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
         logging.info(LOG_STR)
         logging.info(script.LOGO)
 
