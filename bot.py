@@ -3,8 +3,8 @@ import glob
 import importlib
 from pathlib import Path
 import logging
-from pyrogram import idle
-from pyrogram import Client, __version__
+from pyrogram import Client, idle
+from pyrogram import __version__ as pyro_version
 from pyrogram.raw.all import layer
 from database.ia_filterdb import Media
 from database.users_chats_db import db
@@ -18,7 +18,6 @@ import pytz
 from aiohttp import web
 from plugins import web_server
 import asyncio
-from pyrogram import idle
 
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
@@ -69,7 +68,7 @@ async def Lazy_start():
         temp.B_NAME = me.first_name
         LazyPrincessBot.username = '@' + me.username
 
-        logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
+        logging.info(f"{me.first_name} with for Pyrogram v{pyro_version} (Layer {layer}) started on {me.username}.")
         logging.info(LOG_STR)
         logging.info(script.LOGO)
 
@@ -99,4 +98,4 @@ if __name__ == '__main__':
         asyncio.run(Lazy_start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
-                
+        
