@@ -181,14 +181,15 @@ async def get_all(client, message):
     )
         
 @Client.on_message(filters.command('del') & filters.incoming)
+@Client.on_message(filters.command('del') & filters.incoming)
 async def deletefilter(client, message):
     userid = message.from_user.id if message.from_user else None
     if not userid:
         return await message.reply(f"You are anonymous admin. Use /connect {message.chat.id} in PM")
     chat_type = message.chat.type
 
-    if chat_type == enums.ChatType.PRIVATE:
-        grpid  = await active_connection(str(userid))
+    if chat_type == "private":
+        grpid = await active_connection(str(userid))
         if grpid is not None:
             grp_id = grpid
             try:
@@ -199,8 +200,9 @@ async def deletefilter(client, message):
                 return
         else:
             await message.reply_text("I'm not connected to any groups!", quote=True)
+            return
 
-    elif chat_type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
+    elif chat_type in ["group", "supergroup"]:
         grp_id = message.chat.id
         title = message.chat.title
 
@@ -209,8 +211,8 @@ async def deletefilter(client, message):
 
     st = await client.get_chat_member(grp_id, userid)
     if (
-        st.status != enums.ChatMemberStatus.ADMINISTRATOR
-        and st.status != enums.ChatMemberStatus.OWNER
+        st.status != "administrator"
+        and st.status != "owner"
         and str(userid) not in ADMINS
     ):
         return
@@ -219,7 +221,7 @@ async def deletefilter(client, message):
         cmd, text = message.text.split(" ", 1)
     except:
         await message.reply_text(
-            "<i>Mention the filtername which you wanna delete!</i>\n\n"
+            "<i>Mention the filter name that you want to delete!</i>\n\n"
             "<code>/del filtername</code>\n\n"
             "Use /viewfilters to view all available filters",
             quote=True
@@ -228,8 +230,12 @@ async def deletefilter(client, message):
 
     query = text.lower()
 
-    await delete_filter(message, query, grp_id)
-        
+    try:
+        await delete_filter(message, query, grp_id)
+    except pyrogram.errors.exceptions.bad_request_400.MessageDeleteForbidden:
+        await message.reply_text("You do not have permission to delete this filter.", quote=True)
+        return
+
 
 @Client.on_message(filters.command('delall') & filters.incoming)
 async def delallconfirm(client, message):
