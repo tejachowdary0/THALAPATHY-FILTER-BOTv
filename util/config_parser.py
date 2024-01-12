@@ -1,4 +1,4 @@
-import asyncio
+#Thanks @Lazydeveloperr helping this journey 
 from os import environ
 from typing import Dict, Optional
 
@@ -8,8 +8,7 @@ class TokenParser:
         self.tokens = {}
         self.config_file = config_file
 
-    async def parse_from_env(self) -> Dict[int, str]:
-        loop = asyncio.get_running_loop()
+    def parse_from_env(self) -> Dict[int, str]:
         self.tokens = dict(
             (c + 1, t)
             for c, (_, t) in enumerate(
