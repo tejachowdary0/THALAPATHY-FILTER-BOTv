@@ -1,5 +1,4 @@
 
-
 import sys
 import glob
 import importlib
@@ -24,7 +23,13 @@ logging.getLogger("aiohttp.web").setLevel(logging.ERROR)
 from pyrogram import Client, __version__
 from pyrogram.raw.all import layer
 from database.ia_filterdb import Media
-	@@ -37,26 +17,23 @@
+from database.users_chats_db import db
+from info import *
+from utils import temp
+from typing import Union, Optional, AsyncGenerator
+from pyrogram import types
+from Script import script 
+from datetime import date, datetime 
 import pytz
 from aiohttp import web
 from plugins import web_server
@@ -39,7 +44,7 @@ from lazybot.clients import initialize_clients
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
 LazyPrincessBot.start()
-
+loop = asyncio.get_event_loop()
 
 
 async def Lazy_start():
@@ -51,7 +56,11 @@ async def Lazy_start():
     for name in files:
         with open(name) as a:
             patt = Path(a.name)
-	@@ -68,39 +45,45 @@ async def Lazy_start():
+            plugin_name = patt.stem.replace(".py", "")
+            plugins_dir = Path(f"plugins/{plugin_name}.py")
+            import_path = "plugins.{}".format(plugin_name)
+            spec = importlib.util.spec_from_file_location(import_path, plugins_dir)
+            load = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(load)
             sys.modules["plugins." + plugin_name] = load
             print("Lazy Imported => " + plugin_name)
@@ -82,11 +91,8 @@ async def Lazy_start():
 
 
 if __name__ == '__main__':
-    # Set up the event loop
-    asyncio.set_event_loop(asyncio.new_event_loop())
-    loop = asyncio.get_event_loop()
-
     try:
         loop.run_until_complete(Lazy_start())
     except KeyboardInterrupt:
         logging.info('Service Stopped Bye 👋')
+	
