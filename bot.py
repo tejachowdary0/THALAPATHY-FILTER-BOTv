@@ -22,6 +22,10 @@ from lazybot import LazyPrincessBot
 from util.keepalive import ping_server
 from lazybot.clients import initialize_clients
 
+# Set up a new event loop to address the DeprecationWarning
+import asyncio
+asyncio.set_event_loop(asyncio.new_event_loop())
+
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
 LazyPrincessBot.start()
@@ -87,3 +91,4 @@ if __name__ == '__main__':
     finally:
         loop.run_until_complete(loop.shutdown_asyncgens())
         loop.close()
+            
