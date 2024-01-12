@@ -44,7 +44,7 @@ from lazybot.clients import initialize_clients
 ppath = "plugins/*.py"
 files = glob.glob(ppath)
 LazyPrincessBot.start()
-loop = asyncio.get_event_loop()
+loop = asyncio.get_running_loop()
 
 
 async def Lazy_start():
