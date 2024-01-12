@@ -1,98 +1,49 @@
-
-import sys
-import glob
-import importlib
-from pathlib import Path
-from pyrogram import idle
-import logging
-import logging.config
-
-# Get logging configurations
-logging.config.fileConfig('logging.conf')
-logging.getLogger().setLevel(logging.INFO)
-logging.getLogger("pyrogram").setLevel(logging.ERROR)
-logging.getLogger("imdbpy").setLevel(logging.ERROR)
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
-logging.getLogger("aiohttp").setLevel(logging.ERROR)
-logging.getLogger("aiohttp.web").setLevel(logging.ERROR)
-
-
-from pyrogram import Client, __version__
-from pyrogram.raw.all import layer
-from database.ia_filterdb import Media
-from database.users_chats_db import db
-from info import *
-from utils import temp
-from typing import Union, Optional, AsyncGenerator
-from pyrogram import types
-from Script import script 
-from datetime import date, datetime 
-import pytz
-from aiohttp import web
-from plugins import web_server
-
 import asyncio
-from pyrogram import idle
-from lazybot import LazyPrincessBot
-from util.keepalive import ping_server
-from lazybot.clients import initialize_clients
+import logging
+from pyrogram import Client
+from info import *
+from util.config_parser import TokenParser
+from . import multi_clients, work_loads, LazyPrincessBot
 
+async def initialize_clients():
+    multi_clients[0] = LazyPrincessBot
+    work_loads[0] = 0
+    all_tokens = TokenParser().parse_from_env()
+    if not all_tokens:
+        print("No additional clients found, using default client")
+        return
+    
+    async def start_client(client_id, token):
+        try:
+            print(f"Starting - Client {client_id}")
+            if client_id == len(all_tokens):
+                await asyncio.sleep(2)
+                print("This will take some time, please wait...")
+            client = await Client(
+                name=str(client_id),
+                api_id=API_ID,
+                api_hash=API_HASH,
+                bot_token=token,
+                sleep_threshold=SLEEP_THRESHOLD,
+                no_updates=True,
+                in_memory=True
+            ).start()
+            work_loads[client_id] = 0
+            return client_id, client
+        except Exception:
+            logging.error(f"Failed starting Client - {client_id} Error:", exc_info=True)
+    
+    clients = await asyncio.gather(*[start_client(i, token) for i, token in all_tokens.items()])
+    multi_clients.update(dict(clients))
+    if len(multi_clients) != 1:
+        MULTI_CLIENT = True
+        print("Multi-Client Mode Enabled")
+    else:
+        print("No additional clients were initialized, using default client")
 
-ppath = "plugins/*.py"
-files = glob.glob(ppath)
-LazyPrincessBot.start()
-loop = asyncio.get_event_loop()
-
-
-async def Lazy_start():
-    print('\n')
-    print('Initalizing Lazy Bot')
-    bot_info = await LazyPrincessBot.get_me()
-    LazyPrincessBot.username = bot_info.username
+# Create and run the event loop
+async def main():
     await initialize_clients()
-    for name in files:
-        with open(name) as a:
-            patt = Path(a.name)
-            plugin_name = patt.stem.replace(".py", "")
-            plugins_dir = Path(f"plugins/{plugin_name}.py")
-            import_path = "plugins.{}".format(plugin_name)
-            spec = importlib.util.spec_from_file_location(import_path, plugins_dir)
-            load = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(load)
-            sys.modules["plugins." + plugin_name] = load
-            print("Lazy Imported => " + plugin_name)
-    if ON_HEROKU:
-        asyncio.create_task(ping_server())
-    b_users, b_chats = await db.get_banned()
-    temp.BANNED_USERS = b_users
-    temp.BANNED_CHATS = b_chats
-    await Media.ensure_indexes()
-    me = await LazyPrincessBot.get_me()
-    temp.ME = me.id
-    temp.U_NAME = me.username
-    temp.B_NAME = me.first_name
-    LazyPrincessBot.username = '@' + me.username
-    logging.info(f"{me.first_name} with for Pyrogram v{__version__} (Layer {layer}) started on {me.username}.")
-    logging.info(LOG_STR)
-    logging.info(script.LOGO)
-    tz = pytz.timezone('Asia/Kolkata')
-    today = date.today()
-    now = datetime.now(tz)
-    time = now.strftime("%H:%M:%S %p")
-    await LazyPrincessBot.send_message(chat_id=LOG_CHANNEL, text=script.RESTART_TXT.format(today, time))
-    app = web.AppRunner(await web_server())
-    await app.setup()
-    bind_address = "0.0.0.0"
-    await web.TCPSite(app, bind_address, PORT).start()
-    await idle()
 
-
-if __name__ == '__main__':
-    try:
-        loop.run_until_complete(Lazy_start())
-    except KeyboardInterrupt:
-        logging.info('Service Stopped Bye 👋')
-	
+if __name__ == "__main__":
+    asyncio.run(main())
