@@ -1,3 +1,8 @@
+import multi_clients
+import work_loads
+import LazyPrincessBot
+
+# Rest of the code...
 # Bot information
 SESSION = 'Media_search'
 USER_SESSION = 'User_Bot'
